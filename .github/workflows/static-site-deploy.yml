@@ -1,11 +1,8 @@
-name: s3-deploy
+name: static-site-deploy
 
 on:
   workflow_call:
     inputs:
-      short_ref:
-        required: true
-        type: string
       source_path:
         required: true
         type: string
@@ -20,10 +17,20 @@ env:
   obj-bucket: ${{ github.event.repository.name }}
 
 jobs:
-  build:
-    name: Deploy to s3 Bucket
+  deploy:
+    name: Checkout and Deploy to Object Storage
     runs-on: ubuntu-latest
     steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+        with:
+          submodules: true # Fetch Hugo themes (true OR recursive)
+          fetch-depth: 0 # Fetch all history for .GitInfo and .Lastmod
+
+      - name: Get branch name
+        id: vars
+        run: echo ::set-output name=short_ref::${GITHUB_REF#refs/*/}
+
       - name: Set up s3cmd
         uses: s3-actions/s3cmd@v1.2.0
         with:
@@ -35,7 +42,7 @@ jobs:
       - name: Deploy site using s3cmd
         env:
           bucket: "s3://${{ env.obj-bucket }}/"
-          target: "s3://${{ env.obj-bucket }}/${{ inputs.short_ref }}/"
+          target: "s3://${{ env.obj-bucket }}/${{ steps.vars.outputs.short_ref }}/"
           source: "${{ inputs.source_path }}"
         run: |
           s3cmd mb $bucket
