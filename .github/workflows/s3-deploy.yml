@@ -9,10 +9,13 @@ on:
       source_path:
         required: true
         type: string
+    secrets:
+      obj-access-key:
+        required: true
+      obj-secret-key:
+        required: true
 
 env:
-  obj-access-key: ${{ secrets.LINODE_ACCESS_KEY }}
-  obj-secret-key: ${{ secrets.LINODE_SECRET_KEY }}
   obj-region: "us-east-1"
   obj-bucket: ${{ github.event.repository.name }}
 
@@ -26,8 +29,8 @@ jobs:
         with:
           provider: linode # default is linode
           region: ${{ env.obj-region }}
-          access_key: ${{ env.obj-access-key }}
-          secret_key: ${{ env.obj-secret-key }}
+          access_key: ${{ secrets.obj-access-key }}
+          secret_key: ${{ secrets.obj-secret-key }}
 
       - name: Deploy site using s3cmd
         env:
