@@ -1,0 +1,42 @@
+name: s3-deploy
+
+on:
+  workflow_call:
+    inputs:
+      short_ref:
+        required: true
+        type: string
+      source_path:
+        required: true
+        type: string
+
+env:
+  obj-access-key: ${{ secrets.LINODE_ACCESS_KEY }}
+  obj-secret-key: ${{ secrets.LINODE_SECRET_KEY }}
+  obj-region: "us-east-1"
+  obj-bucket: ${{ github.event.repository.name }}
+
+jobs:
+  build:
+    name: Deploy to s3 Bucket
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up s3cmd
+        uses: s3-actions/s3cmd@v1.2.0
+        with:
+          provider: linode # default is linode
+          region: ${{ env.obj-region }}
+          access_key: ${{ env.obj-access-key }}
+          secret_key: ${{ env.obj-secret-key }}
+
+      - name: Deploy site using s3cmd
+        env:
+          bucket: "s3://${{ env.obj-bucket }}/"
+          target: "s3://${{ env.obj-bucket }}/${{ inputs.short_ref }}/"
+          source: "${{ inputs.source_path }}"
+        run: |
+          s3cmd mb $bucket
+          s3cmd setacl $bucket --acl-public
+          s3cmd --no-mime-magic --acl-public sync $source $target
+          s3cmd ws-create --ws-index=index.html --ws-error=404.html $bucket
+          s3cmd ws-info $bucket
