@@ -1,0 +1,59 @@
+name: Hugo Build and Deploy to S3
+
+on:
+  workflow_call:
+
+env:
+  obj-access-key: ${{ secrets.LINODE_ACCESS_KEY }}
+  obj-secret-key: ${{ secrets.LINODE_SECRET_KEY }}
+  obj-region: "us-east-1"
+  obj-bucket: ${{ github.event.repository.name }}
+
+jobs:
+  build:
+    name: Build and Deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get branch name
+        id: vars
+        run: echo ::set-output name=short_ref::${GITHUB_REF#refs/*/}
+
+      - name: Check out code
+        uses: actions/checkout@v3
+        with:
+          submodules: true # Fetch Hugo themes (true OR recursive)
+          fetch-depth: 0 # Fetch all history for .GitInfo and .Lastmod
+
+      - name: Setup Hugo
+        uses: peaceiris/actions-hugo@v2
+        with:
+          hugo-version: "latest"
+          extended: true
+
+      - name: Building Beta website
+        if: steps.vars.outputs.short_ref == 'dev'
+        run: hugo --minify --environment ${{ steps.vars.outputs.short_ref }}
+
+      - name: Building Production website
+        if: steps.vars.outputs.short_ref == 'main'
+        run: hugo --minify
+
+      - name: Set up s3cmd
+        uses: s3-actions/s3cmd@v1.2.0
+        with:
+          provider: linode # default is linode
+          region: ${{ env.obj-region }}
+          access_key: ${{ env.obj-access-key }}
+          secret_key: ${{ env.obj-secret-key }}
+
+      - name: Deploy site using s3cmd
+        env:
+          bucket: "s3://${{ env.obj-bucket }}/"
+          target: "s3://${{ env.obj-bucket }}/${{ steps.vars.outputs.short_ref }}/"
+          source: "public/"
+        run: |
+          s3cmd mb $bucket
+          s3cmd setacl $bucket --acl-public
+          s3cmd --no-mime-magic --acl-public sync $source $target
+          s3cmd ws-create --ws-index=index.html --ws-error=404.html $bucket
+          s3cmd ws-info $bucket
