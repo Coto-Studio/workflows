@@ -14,7 +14,7 @@ env:
 
 jobs:
   deploy:
-    name: Checkout, build, and Deploy to Object Storage
+    name: Hugo build and Deploy to Object Storage
     runs-on: ubuntu-latest
     steps:
       - name: Setup Hugo
