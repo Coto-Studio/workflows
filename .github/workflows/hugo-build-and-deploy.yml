@@ -1,4 +1,4 @@
-name: Hugo Build and Deploy to S3
+name: Hugo Build And Deploy
 
 on:
   workflow_call:
@@ -13,13 +13,15 @@ env:
   obj-bucket: ${{ github.event.repository.name }}
 
 jobs:
-  build:
-    name: Build and Deploy
+  deploy:
+    name: Checkout, build, and Deploy to Object Storage
     runs-on: ubuntu-latest
     steps:
-      - name: Get branch name
-        id: vars
-        run: echo ::set-output name=short_ref::${GITHUB_REF#refs/*/}
+      - name: Setup Hugo
+        uses: peaceiris/actions-hugo@v2
+        with:
+          hugo-version: "latest"
+          extended: true
 
       - name: Check out code
         uses: actions/checkout@v3
@@ -27,17 +29,15 @@ jobs:
           submodules: true # Fetch Hugo themes (true OR recursive)
           fetch-depth: 0 # Fetch all history for .GitInfo and .Lastmod
 
-      - name: Setup Hugo
-        uses: peaceiris/actions-hugo@v2
-        with:
-          hugo-version: "latest"
-          extended: true
+      - name: Get branch name
+        id: vars
+        run: echo ::set-output name=short_ref::${GITHUB_REF#refs/*/}
 
-      - name: Building Beta website
+      - name: Build Beta website
         if: steps.vars.outputs.short_ref == 'dev'
         run: hugo --minify --environment ${{ steps.vars.outputs.short_ref }}
 
-      - name: Building Production website
+      - name: Build Production website
         if: steps.vars.outputs.short_ref == 'main'
         run: hugo --minify
 
@@ -51,8 +51,8 @@ jobs:
 
       - name: Deploy site using s3cmd
         env:
-          bucket: "s3://${{ inputs.obj-bucket }}/"
-          target: "s3://${{ inputs.obj-bucket }}/${{ steps.vars.outputs.short_ref }}/"
+          bucket: "s3://${{ env.obj-bucket }}/"
+          target: "s3://${{ env.obj-bucket }}/${{ steps.vars.outputs.short_ref }}/"
           source: "public/"
         run: |
           s3cmd mb $bucket
