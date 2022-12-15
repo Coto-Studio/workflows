@@ -1,4 +1,4 @@
-name: Hugo Build And Deploy
+name: Coto.Stuio - Hugo Build and Deploy Protuction Site
 
 on:
   workflow_call:

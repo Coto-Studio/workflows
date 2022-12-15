@@ -1,4 +1,4 @@
-name: Coto.Stuio - Hugo Build and Deploy
+name: Coto.Stuio - Hugo Build and Deploy to Linode Ojebect Storage
 
 on:
   workflow_call:

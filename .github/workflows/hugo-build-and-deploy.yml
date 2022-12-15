@@ -1,0 +1,71 @@
+name: Coto.Stuio - Hugo Build and Deploy Beta Site
+
+on:
+  workflow_call:
+    secrets:
+      obj-access-key:
+        required: true
+      obj-secret-key:
+        required: true
+
+env:
+  obj-region: "us-east-1"
+  obj-bucket: ${{ github.event.repository.name }}
+  bucket: "s3://${{ env.obj-bucket }}/"
+  target: "s3://${{ env.obj-bucket }}/${{ github.ref_name }}/"
+  source: "public"
+
+jobs:
+  deploy:
+    name: Build A Hugo Site And Deploy to Linode Ojebect Storage
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup Hugo
+        uses: peaceiris/actions-hugo@v2
+        with:
+          hugo-version: "latest"
+          extended: true
+
+      - name: Set up s3cmd
+        uses: s3-actions/s3cmd@v1
+        with:
+          provider: linode # default is linode
+          region: ${{ env.obj-region }}
+          access_key: ${{ secrets.obj-access-key }}
+          secret_key: ${{ secrets.obj-secret-key }}
+
+      - name: Check out code
+        uses: actions/checkout@v3
+        with:
+          submodules: true # Fetch Hugo themes (true OR recursive)
+          fetch-depth: 0 # Fetch all history for .GitInfo and .Lastmod
+
+      - name: Set envionment param to dev
+        run: echo "{environment_param}={dev}" >> $GITHUB_ENV
+        if: github.ref_name == 'dev'
+
+      - name: Set envionment param to production
+        run: echo "{environment_param}={production}" >> $GITHUB_ENV
+        if: github.ref_name == 'main'
+
+      - name: Build Hugo Site
+        run: hugo --minify --environment ${{ env.environment_param }}
+
+      - name: Create bucket and setacl to public
+        run: |
+          s3cmd mb ${{ env.bucket }}
+          s3cmd setacl ${{ env.bucket }} --acl-public
+
+      - name: "Copy files in public/ to ${{ env.target }}"
+        run: |
+          s3cmd --no-mime-magic --acl-public sync ${{ env.source }}/ ${{ env.target }}
+          s3cmd --no-mime-magic --acl-public sync ${{ env.source }}/404.html ${{ env.bucket }}
+
+      - name: Overwrite 404.html if production site
+        if: github.ref_name == 'main'
+        run: s3cmd --no-mime-magic --acl-public sync ${{ env.source }}/404.html ${{ env.bucket }}
+
+      - name: Create Object Storage website
+        run: |
+          s3cmd ws-create --ws-index=index.html --ws-error=404.html ${{ env.bucket }}
+          s3cmd ws-info ${{ env.bucket }}
