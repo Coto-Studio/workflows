@@ -31,7 +31,7 @@ jobs:
 
       - name: Get branch name
         id: vars
-        run: echo ::set-output name=short_ref::${GITHUB_REF#refs/*/}
+        run: echo "{name}={short_ref::${GITHUB_REF#refs/*/}}" >> $GITHUB_STATE
 
       - name: Build Beta website
         run: hugo --minify --environment ${{ steps.vars.outputs.short_ref }}
