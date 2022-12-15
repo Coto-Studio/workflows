@@ -1,0 +1,15 @@
+name: Coto Studio - Build Hugo Site and Deploy to Linode Object Storage
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - dev
+      - main
+
+jobs:
+  call-reuseable-workflow:
+    uses: Coto-Studio/workflows/.github/workflows/hugo-build-and-deploy.yml@main
+    secrets:
+      obj-access-key: ${{ secrets.LINODE_ACCESS_KEY }}
+      obj-secret-key: ${{ secrets.LINODE_SECRET_KEY }}
