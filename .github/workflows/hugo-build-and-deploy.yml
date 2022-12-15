@@ -40,11 +40,11 @@ jobs:
           fetch-depth: 0 # Fetch all history for .GitInfo and .Lastmod
 
       - name: Set envionment param to dev
-        run: echo "{hugo-environment}={dev}" >> $GITHUB_ENV
+        run: echo "hugo-environment=dev" >> $GITHUB_ENV
         if: github.ref_name == 'dev'
 
       - name: Set envionment param to production
-        run: echo "{hugo-environment}={production}" >> $GITHUB_ENV
+        run: echo "hugo-environment=production" >> $GITHUB_ENV
         if: github.ref_name == 'main'
 
       - name: Build Hugo Site
