@@ -1,4 +1,4 @@
-name: Hugo Build And Deploy
+name: Coto.Stuio - Hugo Build and Deploy
 
 on:
   workflow_call:
@@ -14,7 +14,7 @@ env:
 
 jobs:
   deploy:
-    name: Hugo build and Deploy to Object Storage
+    name: Build Hugo Beta Site And Deploy to Linode Ojebect Storage
     runs-on: ubuntu-latest
     steps:
       - name: Setup Hugo
@@ -34,12 +34,7 @@ jobs:
         run: echo ::set-output name=short_ref::${GITHUB_REF#refs/*/}
 
       - name: Build Beta website
-        if: steps.vars.outputs.short_ref == 'dev'
         run: hugo --minify --environment ${{ steps.vars.outputs.short_ref }}
-
-      - name: Build Production website
-        if: steps.vars.outputs.short_ref == 'main'
-        run: hugo --minify
 
       - name: Set up s3cmd
         uses: s3-actions/s3cmd@v1.2.0
@@ -53,10 +48,11 @@ jobs:
         env:
           bucket: "s3://${{ env.obj-bucket }}/"
           target: "s3://${{ env.obj-bucket }}/${{ steps.vars.outputs.short_ref }}/"
-          source: "public/"
+          source: "public"
         run: |
           s3cmd mb $bucket
           s3cmd setacl $bucket --acl-public
-          s3cmd --no-mime-magic --acl-public sync $source $target
+          s3cmd --no-mime-magic --acl-public sync $source/ $target
+          s3cmd --no-mime-magic --acl-public sync $source/404.html $bucket
           s3cmd ws-create --ws-index=index.html --ws-error=404.html $bucket
           s3cmd ws-info $bucket
