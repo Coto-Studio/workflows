@@ -39,8 +39,8 @@ jobs:
           submodules: true # Fetch Hugo themes (true OR recursive)
           fetch-depth: 0 # Fetch all history for .GitInfo and .Lastmod
 
-      - name: Set envionment param to dev
-        run: echo "hugo-environment=dev" >> $GITHUB_ENV
+      - name: Set envionment param to beta
+        run: echo "hugo-environment=beta" >> $GITHUB_ENV
         if: github.ref_name == 'dev'
 
       - name: Set envionment param to production
@@ -55,14 +55,14 @@ jobs:
           s3cmd mb ${{ env.obj-bucket }}
           s3cmd setacl ${{ env.obj-bucket }} --acl-public
 
-      - name: "Copy files in ${{ env.hugo-source }}/ to ${{ env.obj-bucket }}/${{ env.obj-target }}"
+      - name: "Copy files in ${{ env.hugo-source }}/ to ${{ env.obj-bucket }}/${{ env.obj-target }}/"
         run: |
-          s3cmd --no-mime-magic --acl-public sync ${{ env.hugo-source }}/ ${{ env.obj-bucket }}/${{ env.obj-target }}
-          s3cmd --no-mime-magic --acl-public sync ${{ env.hugo-source }}/404.html ${{ env.obj-bucket }}
+          s3cmd --no-mime-magic --acl-public sync ${{ env.hugo-source }}/ ${{ env.obj-bucket }}/${{ env.obj-target }}/
+          s3cmd --no-mime-magic --acl-public sync ${{ env.hugo-source }}/404.html ${{ env.obj-bucket }}/
 
       - name: Overwrite 404.html if production site
         if: github.ref_name == 'main'
-        run: s3cmd --no-mime-magic --acl-public sync ${{ env.hugo-source }}/404.html ${{ env.obj-bucket }}
+        run: s3cmd --no-mime-magic --acl-public sync ${{ env.hugo-source }}/404.html ${{ env.obj-bucket }}/
 
       - name: Create Object Storage website
         run: |
