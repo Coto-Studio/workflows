@@ -37,7 +37,7 @@ jobs:
         run: hugo --minify
 
       - name: Set up s3cmd
-        uses: s3-actions/s3cmd@v1.2.0
+        uses: s3-actions/s3cmd@v1
         with:
           provider: linode # default is linode
           region: ${{ env.obj-region }}
