@@ -26,7 +26,7 @@ jobs:
           extended: true
 
       - name: Set up s3cmd
-        uses: s3-actions/s3cmd@latest
+        uses: s3-actions/s3cmd@v1.5.0
         with:
           provider: linode # default is linode
           region: ${{ env.obj-region }}
@@ -34,7 +34,7 @@ jobs:
           secret_key: ${{ secrets.obj-secret-key }}
 
       - name: Check out code
-        uses: actions/checkout@latest
+        uses: actions/checkout@v3
         with:
           submodules: true # Fetch Hugo themes (true OR recursive)
           fetch-depth: 0 # Fetch all history for .GitInfo and .Lastmod
