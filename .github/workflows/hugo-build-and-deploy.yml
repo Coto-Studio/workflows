@@ -25,6 +25,10 @@ jobs:
           hugo-version: "latest"
           extended: true
 
+      - name: Setup Python
+        if: ${{ !env.ACT }}
+        uses: actions/setup-python@v4.7.0
+
       - name: Set up s3cmd
         uses: s3-actions/s3cmd@v1.5.0
         with:
