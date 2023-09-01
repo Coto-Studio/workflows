@@ -26,7 +26,7 @@ jobs:
           extended: true
 
       - name: Set up s3cmd
-        uses: s3-actions/s3cmd@v1
+        uses: s3-actions/s3cmd@latest
         with:
           provider: linode # default is linode
           region: ${{ env.obj-region }}
@@ -34,7 +34,7 @@ jobs:
           secret_key: ${{ secrets.obj-secret-key }}
 
       - name: Check out code
-        uses: actions/checkout@v3
+        uses: actions/checkout@latest
         with:
           submodules: true # Fetch Hugo themes (true OR recursive)
           fetch-depth: 0 # Fetch all history for .GitInfo and .Lastmod
@@ -50,6 +50,15 @@ jobs:
       - name: Build Hugo Site
         run: hugo --minify --environment ${{ env.hugo-environment }}
 
+      - name: Find files matching "404.html"
+        uses: jeertmans/filesfinder@latest
+        id: ff # Any id, to be used later to reference to files output
+        with:
+          # Only argument, a single string, to be passed as arguments to ff.
+          # See `ff --help` for more help.
+          # Default: "*"
+          args: "${{ env.hugo-source }}/*404.html"
+
       - name: Create bucket and setacl to public
         run: |
           s3cmd mb ${{ env.obj-bucket }}
@@ -58,7 +67,7 @@ jobs:
       - name: "Copy files in ${{ env.hugo-source }}/ to ${{ env.obj-bucket }}/${{ env.obj-target }}/"
         run: |
           s3cmd --no-mime-magic --acl-public sync ${{ env.hugo-source }}/ ${{ env.obj-bucket }}/${{ env.obj-target }}/
-          s3cmd --no-mime-magic --acl-public sync ${{ env.hugo-source }}/404.html ${{ env.obj-bucket }}/
+          s3cmd --no-mime-magic --acl-public sync ${{ steps.ff.outputs.files[0] }} ${{ env.obj-bucket }}/
 
       - name: Overwrite 404.html if production site
         if: github.ref_name == 'main'
