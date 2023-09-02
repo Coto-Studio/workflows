@@ -2,6 +2,11 @@ name: Coto.Stuio - Hugo Build and Deploy to Linode Ojebect Storage
 
 on:
   workflow_call:
+    inputs:
+      hugo-environment:
+        required: false
+        default: "production"
+        type: string
     secrets:
       obj-access-key:
         required: true
@@ -28,6 +33,8 @@ jobs:
       - name: Setup Python
         if: ${{ env.ACT }}
         uses: actions/setup-python@v4.7.0
+        with:
+          python-version: "3.x"
 
       - name: Set up s3cmd
         uses: s3-actions/s3cmd@v1.5.0
@@ -43,25 +50,12 @@ jobs:
           submodules: true # Fetch Hugo themes (true OR recursive)
           fetch-depth: 0 # Fetch all history for .GitInfo and .Lastmod
 
-      - name: Set envionment param to beta
-        run: echo "hugo-environment=beta" >> $GITHUB_ENV
-        if: github.ref_name == 'dev'
-
-      - name: Set envionment param to production
-        run: echo "hugo-environment=production" >> $GITHUB_ENV
-        if: github.ref_name == 'main'
-
       - name: Build Hugo Site
-        run: hugo --minify --environment ${{ env.hugo-environment }}
+        run: hugo --minify --environment ${{ inputs.hugo-environment }}
 
       - name: Find files matching "404.html"
-        uses: jeertmans/filesfinder@latest
-        id: ff # Any id, to be used later to reference to files output
-        with:
-          # Only argument, a single string, to be passed as arguments to ff.
-          # See `ff --help` for more help.
-          # Default: "*"
-          args: "${{ env.hugo-source }}/*404.html"
+        run: echo "file=$(find ${{ env.hugo-source }} -name '404.html' | head -n 1)" >> "$GITHUB_OUTPUT"
+        id: find_files
 
       - name: Create bucket and setacl to public
         run: |
@@ -71,11 +65,10 @@ jobs:
       - name: "Copy files in ${{ env.hugo-source }}/ to ${{ env.obj-bucket }}/${{ env.obj-target }}/"
         run: |
           s3cmd --no-mime-magic --acl-public sync ${{ env.hugo-source }}/ ${{ env.obj-bucket }}/${{ env.obj-target }}/
-          s3cmd --no-mime-magic --acl-public sync ${{ steps.ff.outputs.files[0] }} ${{ env.obj-bucket }}/
 
-      - name: Overwrite 404.html if production site
-        if: github.ref_name == 'main'
-        run: s3cmd --no-mime-magic --acl-public sync ${{ env.hugo-source }}/404.html ${{ env.obj-bucket }}/
+      - name: Overwrite 404.html with ${{ steps.ff.outputs.stdout }}
+        if: inputs.hugo-environment == 'production'
+        run: s3cmd --no-mime-magic --acl-public sync ${{ steps.find_files.outputs.file }} ${{ env.obj-bucket }}/
 
       - name: Create Object Storage website
         run: |
