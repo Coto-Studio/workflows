@@ -57,10 +57,16 @@ jobs:
         run: echo "file=$(find ${{ env.hugo-source }} -name '404.html' | head -n 1)" >> "$GITHUB_OUTPUT"
         id: find_files
 
+      - name: Check if bucket exsits
+        id: check_bucket
+        run: s3cmd info ${{ env.obj-bucket }}
+        continue-on-error: true
+
       - name: Create bucket and setacl to public
         run: |
           s3cmd mb ${{ env.obj-bucket }}
           s3cmd setacl ${{ env.obj-bucket }} --acl-public
+        if: ${{ failure() && steps.check_bucket.conclusion == 'failure' }}
 
       - name: "Copy files in ${{ env.hugo-source }}/ to ${{ env.obj-bucket }}/${{ env.obj-target }}/"
         run: |
