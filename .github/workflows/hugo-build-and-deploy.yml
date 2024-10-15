@@ -25,19 +25,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Setup Hugo
-        uses: peaceiris/actions-hugo@v2
+        uses: peaceiris/actions-hugo@v3
         with:
-          hugo-version: "latest"
+          hugo-version: "0.136.0"
           extended: true
 
       - name: Setup Python
         if: ${{ env.ACT }}
-        uses: actions/setup-python@v4.7.0
+        uses: actions/setup-python@v5.2.0
         with:
-          python-version: "3.x"
+          python-version: "3.12"
 
       - name: Set up s3cmd
-        uses: s3-actions/s3cmd@v1.5.0
+        uses: s3-actions/s3cmd@v1.9.0
         with:
           provider: linode # default is linode
           region: ${{ env.obj-region }}
