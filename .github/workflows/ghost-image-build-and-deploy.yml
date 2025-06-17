@@ -1,4 +1,4 @@
-name: Ghost Image, Build and Deploy
+name: Ghost Image
 
 on:
   workflow_call:
@@ -21,6 +21,7 @@ permissions:
 
 jobs:
   build-and-push-image:
+    name: Build & Push
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -46,6 +47,7 @@ jobs:
             ${{ inputs.image-name}}:${{ github.sha }}
 
   deploy-image:
+    name: Docker Stack Deploy
     runs-on: ubuntu-latest
     steps:
       - name: Load secret
