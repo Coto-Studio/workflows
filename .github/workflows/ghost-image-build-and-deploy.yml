@@ -15,6 +15,9 @@ on:
       item-id:
         required: true
         type: string
+    secrets:
+      OP_SERVICE_ACCOUNT_TOKEN:
+        required: true
 
 permissions:
   packages: write
