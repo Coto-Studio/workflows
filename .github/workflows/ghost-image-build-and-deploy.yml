@@ -3,6 +3,9 @@ name: Ghost Image
 on:
   workflow_call:
     inputs:
+      repo-name:
+        required: true
+        type: string
       image-name:
         required: true
         type: string
@@ -29,6 +32,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
+          repository: ${{ inputs.repo-name }}
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Log in to the Container registry
