@@ -31,9 +31,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          repository: ${{ inputs.repo-name }}
-          token: ${{ secrets.GITHUB_TOKEN }}
+        # with:
+        #   repository: ${{ inputs.repo-name }}
+        #   token: ${{ github.token }}
 
       - name: Log in to the Container registry
         uses: docker/login-action@v3
@@ -51,9 +51,7 @@ jobs:
           context: .
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: |
-            ${{ inputs.image-name}}:latest
-            ${{ inputs.image-name}}:${{ github.sha }}
+          tags: ${{ inputs.image-name}}:latest
 
   deploy-image:
     name: Docker Stack Deploy
