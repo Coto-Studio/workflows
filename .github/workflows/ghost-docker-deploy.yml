@@ -118,6 +118,7 @@ jobs:
           registry_pass: ${{ secrets.GITHUB_TOKEN }}
 
       - name: pushover-actions
+        if: always()
         uses: umahmood/pushover-actions@main
         env:
           PUSHOVER_TOKEN: ${{ env.PUSHOVER_API_TOKEN }}
