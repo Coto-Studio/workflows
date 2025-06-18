@@ -34,8 +34,8 @@ jobs:
           export-env: true
         env:
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
-          WORKFLOWS_PAT: "op://Coto.Studio - Deploy/dvdxlvxhkphndlusdv7gecvenq/credential"
           # Workflow
+          WORKFLOWS_PAT: "op://Coto.Studio - Deploy/dvdxlvxhkphndlusdv7gecvenq/credential"
           TS_OAUTH_CLIENT_ID: "op://Coto.Studio - Deploy/hhiitsau5hvn3mzvitvco2pysu/Client ID"
           TS_OAUTH_SECRET: "op://Coto.Studio - Deploy/hhiitsau5hvn3mzvitvco2pysu/credential"
           PUSHOVER_USER_KEY: "op://Coto.Studio - Deploy/Pushover/credential"
