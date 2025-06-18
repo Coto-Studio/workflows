@@ -33,14 +33,15 @@ jobs:
         with:
           export-env: true
         env:
-          GIT_BRANCH: "main"
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+          WORKFLOWS_PAT: "op://Coto.Studio - Deploy/dvdxlvxhkphndlusdv7gecvenq/credential"
+          # Workflow
           TS_OAUTH_CLIENT_ID: "op://Coto.Studio - Deploy/hhiitsau5hvn3mzvitvco2pysu/Client ID"
           TS_OAUTH_SECRET: "op://Coto.Studio - Deploy/hhiitsau5hvn3mzvitvco2pysu/credential"
           PUSHOVER_USER_KEY: "op://Coto.Studio - Deploy/Pushover/credential"
           PUSHOVER_API_TOKEN: "op://Coto.Studio - Deploy/Pushover/Docker Swarm/API Token"
-          WORKFLOWS_PAT: "op://Coto.Studio - Deploy/GitHub Workflows/credential"
-          # Ghost Config
+          # Docker
+          GIT_BRANCH: "main"
           DEPLOY_HOST: "op://${{ inputs.vault-id }}/${{ inputs.item-id }}/deploy/host"
           DEPLOY_USER: "op://${{ inputs.vault-id }}/${{ inputs.item-id }}/deploy/user"
           DEPLOY_SERVICE_ID: "op://${{ inputs.vault-id }}/${{ inputs.item-id }}/deploy/serviceID"

@@ -27,7 +27,8 @@ jobs:
         with:
           export-env: false
         env:
-          WORKFLOWS_PAT: "op://Coto.Studio - Deploy/GitHub Workflows/credential"
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+          WORKFLOWS_PAT: "op://Coto.Studio - Deploy/dvdxlvxhkphndlusdv7gecvenq/credential"
 
       - uses: actions/checkout@v4
         with:
