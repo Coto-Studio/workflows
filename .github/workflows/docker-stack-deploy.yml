@@ -46,6 +46,7 @@ jobs:
           PUSHOVER_API_TOKEN: "op://Coto.Studio - Deploy/Pushover/Docker Swarm/API Token"
           # Ghost Config
           DEPLOY_HOST: "op://${{ inputs.vault-id }}/${{ inputs.item-id }}/deploy/host"
+          DEPLOY_USER: "op://${{ inputs.vault-id }}/${{ inputs.item-id }}/deploy/user"
           DEPLOY_SERVICE_ID: "op://${{ inputs.vault-id }}/${{ inputs.item-id }}/deploy/serviceID"
           GHOST_DOMAIN: "op://${{ inputs.vault-id }}/${{ inputs.item-id }}/domain/main"
           MYSQL_PORT: "op://${{ inputs.vault-id }}/${{ inputs.item-id }}/mysql/port"
@@ -94,7 +95,7 @@ jobs:
           name: ${{ inputs.stack-name }}
           file: docker-stack.yaml
           host: ${{ env.DEPLOY_HOST }}
-          user: root
+          user: ${{ env.DEPLOY_USER }}
           tailscale: true
           registry_auth: true
           registry_host: https://ghcr.io
