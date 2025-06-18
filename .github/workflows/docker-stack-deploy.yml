@@ -110,4 +110,4 @@ jobs:
         with:
           status: ${{ job.status }}
           title: "${{ github.workflow }}"
-          message: "The GitHub Workflow, ${{ github.workflow }} was run for the repository ${{ github.repository }} with the status of ${{ job.status }}"
+          message: "The GitHub Workflow, ${{ github.workflow }} was run for the repository ${{ github.repository }} with the status of ${{ job.status }}."
