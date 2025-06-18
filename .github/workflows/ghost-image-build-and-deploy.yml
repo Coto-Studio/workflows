@@ -21,6 +21,8 @@ on:
     secrets:
       OP_SERVICE_ACCOUNT_TOKEN:
         required: true
+      WORKFLOWS_PAT:
+        required: true
 
 permissions:
   packages: write
@@ -31,16 +33,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        # with:
-        #   repository: ${{ inputs.repo-name }}
-        #   token: ${{ github.token }}
+        with:
+          token: ${{ secrets.WORKFLOWS_PAT }}
 
       - name: Log in to the Container registry
         uses: docker/login-action@v3
         with:
           registry: https://ghcr.io
           username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          password: ${{ secrets.WORKFLOWS_PAT }}
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -51,7 +52,9 @@ jobs:
           context: .
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: ${{ inputs.image-name}}:latest
+          tags: |
+            ${{ inputs.image-name}}:latest
+            ${{ inputs.image-name}}:${{ github.sha }}
 
   deploy-image:
     name: Docker Stack Deploy
@@ -128,7 +131,6 @@ jobs:
           registry_pass: ${{ secrets.GITHUB_TOKEN }}
 
       - name: pushover-actions
-        if: always()
         uses: umahmood/pushover-actions@main
         env:
           PUSHOVER_TOKEN: ${{ env.PUSHOVER_API_TOKEN }}
