@@ -25,7 +25,7 @@ jobs:
         id: op-load-secrets
         uses: 1password/load-secrets-action@v2
         with:
-          export-env: true
+          export-env: false
         env:
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
           WORKFLOWS_PAT: "op://Coto.Studio - Deploy/dvdxlvxhkphndlusdv7gecvenq/credential"
