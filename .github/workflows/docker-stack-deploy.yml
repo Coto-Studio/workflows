@@ -32,26 +32,6 @@ jobs:
     name: Stack Deploy
     runs-on: ubuntu-latest
     steps:
-      - name: Tailscale
-        uses: Coto-Studio/tailscale-action@main
-        if: ${{ github.event.act }} # use during local actions testing
-        with:
-          oauth-client-id: $TS_OAUTH_CLIENT_ID
-          oauth-secret: $TS_OAUTH_SECRET
-          tags: tag:cicd
-          args: --accept-dns
-          use-cache: "true"
-
-      - name: Connect to Tailscale
-        uses: tailscale/github-action@v3
-        if: ${{ !github.event.act }} # skip during local actions testing
-        with:
-          oauth-client-id: $TS_OAUTH_CLIENT_ID
-          oauth-secret: $TS_OAUTH_SECRET
-          tags: tag:cicd
-          args: --accept-dns
-          use-cache: "true"
-
       - name: Load secret
         id: op-load-secret
         uses: 1password/load-secrets-action@v2
@@ -83,6 +63,26 @@ jobs:
           STORAGE_BUCKET: "op://${{ inputs.vault-id }}/${{ inputs.item-id }}/storage/bucket"
           STORAGE_ENDPOINT: "op://${{ inputs.vault-id }}/${{ inputs.item-id }}/storage/endpoint"
           STORAGE_GPG_PASSPHRASE: "op://${{ inputs.vault-id }}/${{ inputs.item-id }}/storage/gpgPassphrase"
+
+      - name: Tailscale
+        uses: Coto-Studio/tailscale-action@main
+        if: ${{ github.event.act }} # use during local actions testing
+        with:
+          oauth-client-id: $TS_OAUTH_CLIENT_ID
+          oauth-secret: $TS_OAUTH_SECRET
+          tags: tag:cicd
+          args: --accept-dns
+          use-cache: "true"
+
+      - name: Connect to Tailscale
+        uses: tailscale/github-action@v3
+        if: ${{ !github.event.act }} # skip during local actions testing
+        with:
+          oauth-client-id: $TS_OAUTH_CLIENT_ID
+          oauth-secret: $TS_OAUTH_SECRET
+          tags: tag:cicd
+          args: --accept-dns
+          use-cache: "true"
 
       - uses: actions/checkout@v4
         with:
