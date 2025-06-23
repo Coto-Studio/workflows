@@ -40,28 +40,8 @@ jobs:
           TS_OAUTH_SECRET: "op://Coto.Studio - Deploy/hhiitsau5hvn3mzvitvco2pysu/credential"
           PUSHOVER_USER_KEY: "op://Coto.Studio - Deploy/2a5qvqntw53n5i7rei4yv3e72u/credential"
           PUSHOVER_API_TOKEN_DOCKER: "op://Coto.Studio - Deploy/2a5qvqntw53n5i7rei4yv3e72u/Docker Swarm/API Token"
-          PUSHOVER_API_TOKEN_GITHUB: "op://Coto.Studio - Deploy/2a5qvqntw53n5i7rei4yv3e72u/GitHub Workflows/API Token"
-          # Docker
-          GIT_BRANCH: "main"
           DEPLOY_HOST: "op://${{ inputs.vault-id }}/${{ inputs.item-id }}/deploy/host"
           DEPLOY_USER: "op://${{ inputs.vault-id }}/${{ inputs.item-id }}/deploy/user"
-          DEPLOY_SERVICE_ID: "op://${{ inputs.vault-id }}/${{ inputs.item-id }}/deploy/serviceID"
-          GHOST_DOMAIN: "op://${{ inputs.vault-id }}/${{ inputs.item-id }}/domain/main"
-          MYSQL_PORT: "op://${{ inputs.vault-id }}/${{ inputs.item-id }}/mysql/port"
-          MYSQL_USER: "op://${{ inputs.vault-id }}/${{ inputs.item-id }}/mysql/user"
-          MYSQL_PASSWORD: "op://${{ inputs.vault-id }}/${{ inputs.item-id }}/mysql/password"
-          MYSQL_DATABASE: "op://${{ inputs.vault-id }}/${{ inputs.item-id }}/mysql/database"
-          MAIL_HOST: "op://${{ inputs.vault-id }}/${{ inputs.item-id }}/mail/host"
-          MAIL_PORT: "op://${{ inputs.vault-id }}/${{ inputs.item-id }}/mail/port"
-          MAIL_SERVICE: "op://${{ inputs.vault-id }}/${{ inputs.item-id }}/service"
-          MAIL_USER: "op://${{ inputs.vault-id }}/${{ inputs.item-id }}/username"
-          MAIL_PASS: "op://${{ inputs.vault-id }}/${{ inputs.item-id }}/password"
-          STORAGE_ACCESS_KEY_ID: "op://${{ inputs.vault-id }}/${{ inputs.item-id }}/storage/accessKeyId"
-          STORAGE_SECRET_ACCESS_KEY: "op://${{ inputs.vault-id }}/${{ inputs.item-id }}/storage/secretAccessKey"
-          STORAGE_ASSET_HOST: "op://${{ inputs.vault-id }}/${{ inputs.item-id }}/storage/assetHost"
-          STORAGE_BUCKET: "op://${{ inputs.vault-id }}/${{ inputs.item-id }}/storage/bucket"
-          STORAGE_ENDPOINT: "op://${{ inputs.vault-id }}/${{ inputs.item-id }}/storage/endpoint"
-          STORAGE_GPG_PASSPHRASE: "op://${{ inputs.vault-id }}/${{ inputs.item-id }}/storage/gpgPassphrase"
 
       - name: Tailscale
         uses: Coto-Studio/tailscale-action@main
@@ -87,11 +67,14 @@ jobs:
         with:
           token: ${{ env.WORKFLOWS_PAT }}
 
+      - name: Create docker-stack file
+        run: op inject -i docker-stack-op.yaml.tpl -o docker-stack-op.yaml
+
       - name: Docker Stack Deploy
         uses: Coto-Studio/stack-deploy-action@master
         with:
           name: ${{ inputs.stack-name }}
-          file: docker-stack.yaml
+          file: docker-stack-op.yaml
           host: ${{ env.DEPLOY_HOST }}
           user: ${{ env.DEPLOY_USER }}
           tailscale: true

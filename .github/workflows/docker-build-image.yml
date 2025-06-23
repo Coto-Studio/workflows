@@ -1,12 +1,9 @@
-name: Ghost Image
+name: Docker - Build & Push Image
 
 on:
   workflow_call:
     inputs:
       image-name:
-        required: true
-        type: string
-      stack-name:
         required: true
         type: string
     secrets:
@@ -51,5 +48,5 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: true
           tags: |
-            ${{ inputs.image-name}}:latest
-            ${{ inputs.image-name}}:${{ github.sha }}
+            ghcr.io/coto-studio/${{ inputs.image-name}}:latest
+            ghcr.io/coto-studio/${{ inputs.image-name}}:${{ github.sha }}

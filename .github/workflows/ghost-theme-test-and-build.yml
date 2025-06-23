@@ -1,0 +1,47 @@
+name: Test, and Lint Ghost Theme
+on:
+  workflow_call:
+    inputs:
+      image-name:
+        required: true
+        type: string
+
+jobs:
+  test-and-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Load secret
+        id: op-load-secret
+        uses: 1password/load-secrets-action@v2
+        with:
+          export-env: true
+        env:
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+          GITLEAKS_LICENSE: "op://Coto.Studio - Deploy/GitLeaks License/credential"
+
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Scan with GitLeaks
+        if: ${{ !github.event.act }} # skip during local actions testing
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_LICENSE: $GITLEAKS_LICENSE
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+          run_install: false
+
+      - name: Install Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install gscan
+        run: pnpm install -g gscan
+
+      - name: Run gscan
+        run: gscan .
