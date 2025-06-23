@@ -47,6 +47,8 @@ jobs:
           context: .
           platforms: linux/amd64,linux/arm64
           push: true
+          cache-from: type=registry,ref=ghcr.io/coto-studio/${{ inputs.image-name}}:buildcache
+          cache-to: type=registry,ref=ghcr.io/coto-studio/${{ inputs.image-name}}:buildcache,mode=max
           tags: |
             ghcr.io/coto-studio/${{ inputs.image-name}}:latest
             ghcr.io/coto-studio/${{ inputs.image-name}}:${{ github.sha }}
