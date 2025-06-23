@@ -39,7 +39,7 @@ jobs:
           TS_OAUTH_CLIENT_ID: "op://Coto.Studio - Deploy/hhiitsau5hvn3mzvitvco2pysu/Client ID"
           TS_OAUTH_SECRET: "op://Coto.Studio - Deploy/hhiitsau5hvn3mzvitvco2pysu/credential"
           PUSHOVER_USER_KEY: "op://Coto.Studio - Deploy/2a5qvqntw53n5i7rei4yv3e72u/credential"
-          PUSHOVER_API_TOKEN_DOCKER: "op://Coto.Studio - Deploy/2a5qvqntw53n5i7rei4yv3e72u/Docker Swarm/API Token"
+          PUSHOVER_API_TOKEN_GITHUB: "op://Coto.Studio - Deploy/Pushover/GitHub Workflows/API Token"
           DEPLOY_HOST: "op://${{ inputs.vault-id }}/${{ inputs.item-id }}/deploy/host"
           DEPLOY_USER: "op://${{ inputs.vault-id }}/${{ inputs.item-id }}/deploy/user"
 
