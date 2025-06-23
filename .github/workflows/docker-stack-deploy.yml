@@ -69,6 +69,9 @@ jobs:
 
       - name: Create docker-stack file
         run: op inject -i docker-stack-op.yaml.tpl -o docker-stack-op.yaml
+        env:
+          VAULT_ID: ${{ inputs.vault-id }}
+          ITEM_ID: ${{ inputs.item-id }}
 
       - name: Docker Stack Deploy
         uses: Coto-Studio/stack-deploy-action@master
