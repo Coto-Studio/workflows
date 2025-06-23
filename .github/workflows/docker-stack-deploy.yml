@@ -27,21 +27,21 @@ jobs:
     name: Docker Stack Deploy
     runs-on: ubuntu-latest
     steps:
-      #       - name: OP Load secrets
-      #         id: op-load-secrets
-      #         uses: 1password/load-secrets-action@v2
-      #         with:
-      #           export-env: true
-      #         env:
-      #           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
-      #           # Workflow
-      #           WORKFLOWS_PAT: "op://Coto.Studio - Deploy/dvdxlvxhkphndlusdv7gecvenq/credential"
-      #           TS_OAUTH_CLIENT_ID: "op://Coto.Studio - Deploy/hhiitsau5hvn3mzvitvco2pysu/Client ID"
-      #           TS_OAUTH_SECRET: "op://Coto.Studio - Deploy/hhiitsau5hvn3mzvitvco2pysu/credential"
-      #           PUSHOVER_USER_KEY: "op://Coto.Studio - Deploy/2a5qvqntw53n5i7rei4yv3e72u/credential"
-      #           PUSHOVER_API_TOKEN_DOCKER: "op://Coto.Studio - Deploy/2a5qvqntw53n5i7rei4yv3e72u/Docker Swarm/API Token"
-      #           DEPLOY_HOST: "op://${{ inputs.vault-id }}/${{ inputs.item-id }}/deploy/host"
-      #           DEPLOY_USER: "op://${{ inputs.vault-id }}/${{ inputs.item-id }}/deploy/user"
+      - name: OP Load secrets
+        id: op-load-secrets
+        uses: 1password/load-secrets-action@v2
+        with:
+          export-env: true
+        env:
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+          # Workflow
+          WORKFLOWS_PAT: "op://Coto.Studio - Deploy/dvdxlvxhkphndlusdv7gecvenq/credential"
+          TS_OAUTH_CLIENT_ID: "op://Coto.Studio - Deploy/hhiitsau5hvn3mzvitvco2pysu/Client ID"
+          TS_OAUTH_SECRET: "op://Coto.Studio - Deploy/hhiitsau5hvn3mzvitvco2pysu/credential"
+          PUSHOVER_USER_KEY: "op://Coto.Studio - Deploy/2a5qvqntw53n5i7rei4yv3e72u/credential"
+          PUSHOVER_API_TOKEN_DOCKER: "op://Coto.Studio - Deploy/2a5qvqntw53n5i7rei4yv3e72u/Docker Swarm/API Token"
+          DEPLOY_HOST: "op://${{ inputs.vault-id }}/${{ inputs.item-id }}/deploy/host"
+          DEPLOY_USER: "op://${{ inputs.vault-id }}/${{ inputs.item-id }}/deploy/user"
       #
       #       - name: Tailscale
       #         uses: Coto-Studio/tailscale-action@main
