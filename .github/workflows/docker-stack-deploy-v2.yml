@@ -27,8 +27,8 @@ jobs:
           TS_OAUTH_SECRET: ${{ vars.TS_OAUTH_SECRET_OP_REF }}
           PUSHOVER_USER_KEY: ${{ vars.PUSHOVER_USER_KEY_OP_REF }}
           PUSHOVER_API_TOKEN_GITHUB: ${{ vars.PUSHOVER_API_TOKEN_GITHUB_OP_REF }}
-          DEPLOY_HOST: "op://${{ inputs.vault-id }}/${{ inputs.item-id }}/deploy/host"
-          DEPLOY_USER: "op://${{ inputs.vault-id }}/${{ inputs.item-id }}/deploy/user"
+          DEPLOY_HOST: "op://${{ vars.CLIENTS_VAULT_ID }}/${{ vars.ITEM_ID }}/deploy/host"
+          DEPLOY_USER: "op://${{ vars.CLIENTS_VAULT_ID }}/${{ vars.ITEM_ID }}/deploy/user"
 
       - name: Tailscale
         uses: Coto-Studio/tailscale-action@main
