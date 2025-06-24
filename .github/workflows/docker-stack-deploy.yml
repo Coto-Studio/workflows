@@ -2,19 +2,6 @@ name: Docker
 
 on:
   workflow_call:
-    inputs:
-      vault-id:
-        required: true
-        type: string
-      item-id:
-        required: true
-        type: string
-      image-name:
-        required: true
-        type: string
-      stack-name:
-        required: true
-        type: string
     secrets:
       OP_SERVICE_ACCOUNT_TOKEN:
         required: true
@@ -35,11 +22,11 @@ jobs:
         env:
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
           # Workflow
-          WORKFLOWS_PAT: "op://Coto.Studio - Deploy/dvdxlvxhkphndlusdv7gecvenq/credential"
-          TS_OAUTH_CLIENT_ID: "op://Coto.Studio - Deploy/hhiitsau5hvn3mzvitvco2pysu/Client ID"
-          TS_OAUTH_SECRET: "op://Coto.Studio - Deploy/hhiitsau5hvn3mzvitvco2pysu/credential"
-          PUSHOVER_USER_KEY: "op://Coto.Studio - Deploy/2a5qvqntw53n5i7rei4yv3e72u/credential"
-          PUSHOVER_API_TOKEN_GITHUB: "op://Coto.Studio - Deploy/Pushover/GitHub Workflows/API Token"
+          WORKFLOWS_PAT: ${{ vars.WORKFLOWS_OP_REF }}
+          TS_OAUTH_CLIENT_ID: ${{ vars.TS_OAUTH_CLIENT_ID_OP_REF }}
+          TS_OAUTH_SECRET: ${{ vars.TS_OAUTH_SECRET_OP_REF }}
+          PUSHOVER_USER_KEY: ${{ vars.PUSHOVER_USER_KEY_OP_REF }}
+          PUSHOVER_API_TOKEN_GITHUB: ${{ vars.PUSHOVER_API_TOKEN_GITHUB_OP_REF }}
           DEPLOY_HOST: "op://${{ inputs.vault-id }}/${{ inputs.item-id }}/deploy/host"
           DEPLOY_USER: "op://${{ inputs.vault-id }}/${{ inputs.item-id }}/deploy/user"
 
@@ -71,8 +58,8 @@ jobs:
         run: op inject -i docker-stack-op.yaml.tpl -o docker-stack-op.yaml --session $OP_SERVICE_ACCOUNT_TOKEN
         env:
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
-          VAULT_ID: ${{ inputs.vault-id }}
-          ITEM_ID: ${{ inputs.item-id }}
+          VAULT_ID: ${{ vars.VAULT_ID }}
+          ITEM_ID: ${{ vars.ITEM_ID }}
 
       - name: Docker Stack Deploy
         uses: Coto-Studio/stack-deploy-action@master
@@ -83,6 +70,7 @@ jobs:
           user: ${{ env.DEPLOY_USER }}
           tailscale: true
           registry_auth: true
+          resolve_image: always
           registry_host: https://ghcr.io
           registry_user: ${{ github.actor }}
           registry_pass: ${{ env.WORKFLOWS_PAT }}

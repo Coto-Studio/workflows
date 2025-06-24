@@ -2,10 +2,6 @@ name: Docker
 
 on:
   workflow_call:
-    inputs:
-      image-name:
-        required: true
-        type: string
     secrets:
       OP_SERVICE_ACCOUNT_TOKEN:
         required: true
@@ -25,7 +21,7 @@ jobs:
           export-env: false
         env:
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
-          WORKFLOWS_PAT: "op://Coto.Studio - Deploy/dvdxlvxhkphndlusdv7gecvenq/credential"
+          WORKFLOWS_PAT: ${{ vars.WORKFLOWS_OP_REF }}
 
       - uses: actions/checkout@v4
         with:
@@ -47,8 +43,8 @@ jobs:
           context: .
           platforms: linux/amd64,linux/arm64
           push: true
-          cache-from: type=registry,ref=ghcr.io/coto-studio/${{ inputs.image-name}}:buildcache
-          cache-to: type=registry,ref=ghcr.io/coto-studio/${{ inputs.image-name}}:buildcache,mode=max
+          cache-from: type=registry,ref=${{ vars.IMAGE_NAME }}:buildcache
+          cache-to: type=registry,ref=${{ vars.IMAGE_NAME }}:buildcache,mode=max
           tags: |
-            ghcr.io/coto-studio/${{ inputs.image-name}}:latest
-            ghcr.io/coto-studio/${{ inputs.image-name}}:${{ github.sha }}
+            ${{ vars.IMAGE_NAME }}:${{ vars.IMAGE_TAG }}
+            ${{ vars.IMAGE_NAME }}:${{ github.sha }}
