@@ -1,0 +1,86 @@
+name: Docker
+
+on:
+  workflow_call:
+    secrets:
+      OP_SERVICE_ACCOUNT_TOKEN:
+        required: true
+
+permissions:
+  packages: write
+
+jobs:
+  deploy-image:
+    name: Stack Deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: OP Load secrets
+        id: op-load-secrets
+        uses: 1password/load-secrets-action@v2
+        with:
+          export-env: true
+        env:
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+          # Workflow
+          WORKFLOWS_PAT: ${{ vars.WORKFLOWS_OP_REF }}
+          TS_OAUTH_CLIENT_ID: ${{ vars.TS_OAUTH_CLIENT_ID_OP_REF }}
+          TS_OAUTH_SECRET: ${{ vars.TS_OAUTH_SECRET_OP_REF }}
+          PUSHOVER_USER_KEY: ${{ vars.PUSHOVER_USER_KEY_OP_REF }}
+          PUSHOVER_API_TOKEN_GITHUB: ${{ vars.PUSHOVER_API_TOKEN_GITHUB_OP_REF }}
+          DEPLOY_HOST: "op://${{ inputs.vault-id }}/${{ inputs.item-id }}/deploy/host"
+          DEPLOY_USER: "op://${{ inputs.vault-id }}/${{ inputs.item-id }}/deploy/user"
+
+      - name: Tailscale
+        uses: Coto-Studio/tailscale-action@main
+        if: ${{ github.event.act }} # use during local actions testing
+        with:
+          oauth-client-id: $TS_OAUTH_CLIENT_ID
+          oauth-secret: $TS_OAUTH_SECRET
+          tags: tag:cicd
+          args: --accept-dns
+          use-cache: "true"
+
+      - name: Connect to Tailscale
+        uses: tailscale/github-action@v3
+        if: ${{ !github.event.act }} # skip during local actions testing
+        with:
+          oauth-client-id: $TS_OAUTH_CLIENT_ID
+          oauth-secret: $TS_OAUTH_SECRET
+          tags: tag:cicd
+          args: --accept-dns
+          use-cache: "true"
+
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ env.WORKFLOWS_PAT }}
+
+      - name: Create docker-stack file
+        run: op inject -i docker-stack-op.yaml.tpl -o docker-stack-op.yaml --session $OP_SERVICE_ACCOUNT_TOKEN
+        env:
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+          VAULT_ID: ${{ vars.VAULT_ID }}
+          ITEM_ID: ${{ vars.ITEM_ID }}
+
+      - name: Docker Stack Deploy
+        uses: Coto-Studio/stack-deploy-action@master
+        with:
+          name: ${{ inputs.stack-name }}
+          file: docker-stack-op.yaml
+          host: ${{ env.DEPLOY_HOST }}
+          user: ${{ env.DEPLOY_USER }}
+          tailscale: true
+          registry_auth: true
+          resolve_image: always
+          registry_host: https://ghcr.io
+          registry_user: ${{ github.actor }}
+          registry_pass: ${{ env.WORKFLOWS_PAT }}
+
+      - name: pushover-actions
+        uses: umahmood/pushover-actions@main
+        env:
+          PUSHOVER_TOKEN: ${{ env.PUSHOVER_API_TOKEN_GITHUB }}
+          PUSHOVER_USER: ${{ env.PUSHOVER_USER_KEY }}
+        with:
+          status: ${{ job.status }}
+          title: "${{ github.workflow }}"
+          message: "The GitHub Workflow, ${{ github.workflow }} was run for the repository ${{ github.repository }} with the status of ${{ job.status }}."
