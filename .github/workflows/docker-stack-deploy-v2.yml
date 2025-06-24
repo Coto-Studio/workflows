@@ -68,7 +68,6 @@ jobs:
           file: docker-stack-op.yaml
           host: ${{ env.DEPLOY_HOST }}
           user: ${{ env.DEPLOY_USER }}
-          args: --detach
           tailscale: true
           registry_auth: true
           resolve_image: always
