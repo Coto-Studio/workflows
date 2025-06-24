@@ -2,6 +2,9 @@ name: Check Base Image
 
 on:
   workflow_call:
+    secrets:
+      OP_SERVICE_ACCOUNT_TOKEN:
+        required: true
 
 jobs:
   check-base-image:
