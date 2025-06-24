@@ -64,7 +64,7 @@ jobs:
       - name: Docker Stack Deploy
         uses: Coto-Studio/stack-deploy-action@master
         with:
-          name: ${{ inputs.stack-name }}
+          name: ${{ vars.STACK_NAME }}
           file: docker-stack-op.yaml
           host: ${{ env.DEPLOY_HOST }}
           user: ${{ env.DEPLOY_USER }}
