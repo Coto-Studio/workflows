@@ -58,7 +58,7 @@ jobs:
         run: op inject -i docker-stack-op.yaml.tpl -o docker-stack-op.yaml --session $OP_SERVICE_ACCOUNT_TOKEN
         env:
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
-          VAULT_ID: ${{ vars.VAULT_ID }}
+          VAULT_ID: ${{ vars.CLIENTS_VAULT_ID }}
           ITEM_ID: ${{ vars.ITEM_ID }}
 
       - name: Docker Stack Deploy
