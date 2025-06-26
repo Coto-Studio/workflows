@@ -5,6 +5,10 @@ on:
     secrets:
       OP_SERVICE_ACCOUNT_TOKEN:
         required: true
+    outputs:
+      rebuild:
+        description: "Returns true or false if image needs to be rebuilt."
+        value: ${{ jobs.check-base-image.outputs.rebuild }}
 
 jobs:
   check-base-image:
