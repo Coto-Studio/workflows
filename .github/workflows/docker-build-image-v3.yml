@@ -44,6 +44,8 @@ jobs:
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v6
+        env:
+          ENVIRONMENT: ${{ steps.branch-name.outputs.short_ref }}
         with:
           context: .
           platforms: linux/amd64,linux/arm64
