@@ -50,6 +50,7 @@ jobs:
           push: true
           cache-from: type=registry,ref=${{ steps.op-load-secrets.outputs.DEPLOY_IMAGE }}:buildcache
           cache-to: type=registry,ref=${{ steps.op-load-secrets.outputs.DEPLOY_IMAGE }}:buildcache,mode=max
+          build-args: ENVIRONMENT=${{ steps.branch-name.outputs.short_ref }}
           tags: |
             ${{ steps.op-load-secrets.outputs.DEPLOY_IMAGE }}:latest
             ${{ steps.op-load-secrets.outputs.DEPLOY_IMAGE }}:${{ steps.branch-name.outputs.short_ref }}
