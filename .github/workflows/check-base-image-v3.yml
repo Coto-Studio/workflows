@@ -5,15 +5,12 @@ on:
     inputs:
       base-image:
         required: true
-        default: ${{ vars.BASE_IMAGE }}
         type: string
       image-name:
         required: true
-        default: ${{ vars.IMAGE_NAME }}
         type: string
       image-tag:
         required: true
-        default: ${{ vars.IMAGE_TAG }}
         type: string
     secrets:
       OP_SERVICE_ACCOUNT_TOKEN:
