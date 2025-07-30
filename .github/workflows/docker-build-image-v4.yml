@@ -23,11 +23,6 @@ jobs:
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
           WORKFLOWS_PAT: ${{ vars.WORKFLOWS_OP_REF }}
 
-      - uses: actions/checkout@v4
-        with:
-          submodules: "true"
-          token: ${{ steps.op-load-secrets.outputs.WORKFLOWS_PAT }}
-
       - name: Get branch name
         id: branch-name
         run: echo "SHORT_REF=${GITHUB_REF#refs/*/}" >> "$GITHUB_OUTPUT"
@@ -44,3 +39,5 @@ jobs:
 
       - name: Build and push Docker image
         uses: docker/bake-action@v6
+        with:
+          github-token: ${{ steps.op-load-secrets.outputs.WORKFLOWS_PAT }}
