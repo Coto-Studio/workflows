@@ -1,0 +1,46 @@
+name: Docker
+
+on:
+  workflow_call:
+    secrets:
+      OP_SERVICE_ACCOUNT_TOKEN:
+        required: true
+
+permissions:
+  packages: write
+
+jobs:
+  build-and-push-image:
+    name: Build & Push Image
+    runs-on: ubuntu-latest
+    steps:
+      - name: OP Load secrets
+        id: op-load-secrets
+        uses: 1password/load-secrets-action@v2
+        with:
+          export-env: false
+        env:
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+          WORKFLOWS_PAT: ${{ vars.WORKFLOWS_OP_REF }}
+
+      - uses: actions/checkout@v4
+        with:
+          submodules: "true"
+          token: ${{ steps.op-load-secrets.outputs.WORKFLOWS_PAT }}
+
+      - name: Get branch name
+        id: branch-name
+        run: echo "SHORT_REF=${GITHUB_REF#refs/*/}" >> "$GITHUB_OUTPUT"
+
+      - name: Log in to the Container registry
+        uses: docker/login-action@v3
+        with:
+          registry: https://ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ steps.op-load-secrets.outputs.WORKFLOWS_PAT }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and push Docker image
+        uses: docker/bake-action@v6
