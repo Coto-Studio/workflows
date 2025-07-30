@@ -1,0 +1,55 @@
+name: Container
+
+on:
+  workflow_call:
+    inputs:
+      base-image:
+        required: true
+        default: ${{ vars.BASE_IMAGE }}
+        type: string
+      image-name:
+        required: true
+        default: ${{ vars.IMAGE_NAME }}
+        type: string
+      image-tag:
+        required: true
+        default: ${{ vars.IMAGE_TAG }}
+        type: string
+    secrets:
+      OP_SERVICE_ACCOUNT_TOKEN:
+        required: true
+    outputs:
+      rebuild:
+        description: "Returns true or false if image needs to be rebuilt."
+        value: ${{ jobs.check-base-image.outputs.rebuild }}
+
+jobs:
+  check-base-image:
+    name: Check Base Image
+    runs-on: ubuntu-latest
+    outputs:
+      rebuild: ${{ steps.baseupdatecheck.outputs.needs-updating }}
+    steps:
+      - name: OP Load secrets
+        id: op-load-secrets
+        uses: 1password/load-secrets-action@v2
+        with:
+          export-env: false
+        env:
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+          WORKFLOWS_PAT: ${{ vars.WORKFLOWS_OP_REF }}
+
+      - name: Log in to the Container registry
+        uses: docker/login-action@v3
+        with:
+          registry: https://ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ steps.op-load-secrets.outputs.WORKFLOWS_PAT }}
+
+      - name: Docker Image Update Checker
+        id: baseupdatecheck
+        uses: lucacome/docker-image-update-checker@v2
+        with:
+          base-image: ${{ inputs.base-image }}
+          image: ${{ inputs.image-name }}:${{ inputs.image-tag }} # update for your image
+          platforms: linux/amd64,linux/arm64
