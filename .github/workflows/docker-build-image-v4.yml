@@ -43,3 +43,7 @@ jobs:
 
       - name: Build and push Docker image
         run: docker buildx bake
+        # Docker bake has to be run manually because the back-action cannot access local files
+        # uses: docker/bake-action@v6
+        # with:
+        #   github-token: ${{ steps.op-load-secrets.outputs.WORKFLOWS_PAT }}
