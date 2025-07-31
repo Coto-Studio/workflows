@@ -42,7 +42,4 @@ jobs:
         uses: docker/setup-buildx-action@v3
 
       - name: Build and push Docker image
-        uses: docker/bake-action@v6
-        with:
-          source: .
-          github-token: ${{ steps.op-load-secrets.outputs.WORKFLOWS_PAT }}
+        run: docker buildx bake
