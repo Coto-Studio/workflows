@@ -55,6 +55,8 @@ jobs:
           cache-to: type=registry,ref=${{ steps.op-load-secrets.outputs.DEPLOY_IMAGE }}:buildcache,mode=max
           build-args: |
             ENVIRONMENT=${{ steps.branch-name.outputs.SHORT_REF }}
+          secrets: |
+            GITHUB_TOKEN=${{ steps.op-load-secrets.outputs.WORKFLOWS_PAT }}
           tags: |
             ${{ steps.op-load-secrets.outputs.DEPLOY_IMAGE }}:latest
             ${{ steps.op-load-secrets.outputs.DEPLOY_IMAGE }}:${{ steps.branch-name.outputs.SHORT_REF }}
