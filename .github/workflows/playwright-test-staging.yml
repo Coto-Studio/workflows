@@ -39,13 +39,13 @@ jobs:
       - name: Install Playwright browsers
         run: npx playwright install --with-deps ${{ inputs.browsers }}
 
-      - name: Load staging URL from 1Password
+      - name: Load environment URL from 1Password
         uses: 1password/load-secrets-action@v2
         with:
           export-env: true
         env:
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
-          STAGING_URL: "op://${{ vars.CLIENTS_VAULT_ID }}/${{ vars.ITEM_ID }}/staging/url"
+          STAGING_URL: "op://${{ vars.CLIENTS_VAULT_ID }}/${{ vars.ITEM_ID }}/${{ github.ref_name }}/url"
 
       - name: Run Playwright tests
         run: npx playwright test ${{ inputs.test_path }}
