@@ -4,16 +4,16 @@ on:
   workflow_call:
     inputs:
       test_path:
-        description: 'Path to test files (e.g., tests/ci/)'
-        default: 'tests/ci/'
+        description: "Path to test files (e.g., tests/ci/)"
+        default: "tests/ci/"
         type: string
       node_version:
-        description: 'Node.js version'
-        default: '20'
+        description: "Node.js version"
+        default: "20"
         type: string
       browsers:
-        description: 'Browsers to install (space-separated: webkit chromium firefox)'
-        default: 'webkit chromium'
+        description: "Browsers to install (space-separated: webkit chromium firefox)"
+        default: "webkit chromium"
         type: string
     secrets:
       OP_SERVICE_ACCOUNT_TOKEN:
@@ -45,7 +45,7 @@ jobs:
           export-env: true
         env:
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
-          STAGING_URL: "op://${{ vars.CLIENTS_VAULT_ID }}/${{ vars.ITEM_ID }}/${{ github.ref_name }}/url"
+          STAGING_URL: "op://${{ vars.CLIENTS_VAULT_ID }}/${{ vars.ITEM_ID }}/domain/${{ github.ref_name }}/url"
 
       - name: Run Playwright tests
         run: npx playwright test ${{ inputs.test_path }}
