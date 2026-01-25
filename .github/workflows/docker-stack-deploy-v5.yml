@@ -11,9 +11,6 @@ on:
       OP_SERVICE_ACCOUNT_TOKEN:
         required: true
 
-env:
-  STACK_VARIANT: ${{ inputs.environment == 'production' && '' || '-staging' }}
-
 permissions:
   packages: write
 
@@ -22,6 +19,13 @@ jobs:
     name: Stack Deploy
     runs-on: ubuntu-latest
     steps:
+      - name: Set stack variant
+        id: config
+        run: |
+          if [ "${{ inputs.environment }}" = "staging" ]; then
+            echo "stack_variant=-staging" >> $GITHUB_OUTPUT
+          fi
+
       - name: OP Load secrets
         id: op-load-secrets
         uses: 1password/load-secrets-action@v2
@@ -65,7 +69,7 @@ jobs:
           token: ${{ env.WORKFLOWS_PAT }}
 
       - name: Create docker-stack file
-        run: op inject -i docker-stack${{ env.STACK_VARIANT }}-op.yaml.tpl -o docker-stack-op.yaml --session $OP_SERVICE_ACCOUNT_TOKEN
+        run: op inject -i docker-stack${{ steps.config.outputs.stack_variant }}-op.yaml.tpl -o docker-stack-op.yaml --session $OP_SERVICE_ACCOUNT_TOKEN
         env:
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
           VAULT_ID: ${{ vars.CLIENTS_VAULT_ID }}
@@ -74,7 +78,7 @@ jobs:
       - name: Docker Stack Deploy
         uses: Coto-Studio/stack-deploy-action@master
         with:
-          name: "${{ env.DEPLOY_STACK }}-${{ env.DEPLOY_SERVICE }}${{ env.STACK_VARIANT }}"
+          name: "${{ env.DEPLOY_STACK }}-${{ env.DEPLOY_SERVICE }}${{ steps.config.outputs.stack_variant }}"
           file: docker-stack-op.yaml
           host: ${{ env.DEPLOY_HOST }}
           user: ${{ env.DEPLOY_USER }}
