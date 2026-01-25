@@ -1,0 +1,43 @@
+# Coto Studio - Playwright Test on Staging
+#
+# Runs Playwright tests against staging environment after deploy.
+#
+# Required repository variables (Settings > Secrets and variables > Actions > Variables):
+#   - CLIENTS_VAULT_ID: 1Password vault ID containing project secrets
+#   - ITEM_ID: 1Password item ID for this project
+#
+# Required 1Password item fields:
+#   - staging/url: Full URL to staging environment (e.g., https://staging.example.com)
+#
+# Required repository secrets:
+#   - OP_SERVICE_ACCOUNT_TOKEN: 1Password service account token
+#
+# Usage:
+#   1. Copy this file to your project's .github/workflows/ directory
+#   2. Rename to match your project (e.g., myproject-playwright-tests.yml)
+#   3. Update the workflow_run trigger to match your staging deploy workflow name
+#   4. Optionally customize test_path if tests are in a different location
+
+name: {{PROJECT_NAME}} - Playwright Tests
+
+on:
+  # Run after staging deploy completes
+  workflow_run:
+    workflows: ["{{STAGING_DEPLOY_WORKFLOW_NAME}}"]
+    types:
+      - completed
+    branches:
+      - dev
+  # Allow manual trigger
+  workflow_dispatch:
+
+jobs:
+  call-reusable-workflow:
+    # Only run if the triggering workflow succeeded (or if manually triggered)
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+    uses: Coto-Studio/workflows/.github/workflows/playwright-test-staging.yml@main
+    with:
+      test_path: tests/ci/
+      # browsers: webkit chromium  # Uncomment to customize browsers
+    secrets:
+      OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
