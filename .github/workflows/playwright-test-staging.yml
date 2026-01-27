@@ -7,10 +7,6 @@ on:
         description: "Path to test files (e.g., tests/ci/)"
         default: "tests/ci/"
         type: string
-      node_version:
-        description: "Node.js version"
-        default: "20"
-        type: string
       browsers:
         description: "Browsers to install (space-separated: webkit chromium firefox)"
         default: "webkit chromium"
@@ -40,22 +36,22 @@ jobs:
         with:
           token: ${{ steps.op-load-secrets.outputs.WORKFLOWS_PAT }}
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ inputs.node_version }}
-          registry-url: "https://npm.pkg.github.com"
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Configure GitHub Packages auth
+        run: |
+          echo "@coto-studio:registry=https://npm.pkg.github.com" >> .npmrc
+          echo "//npm.pkg.github.com/:_authToken=${{ steps.op-load-secrets.outputs.WORKFLOWS_PAT }}" >> .npmrc
 
       - name: Install dependencies
-        run: npm ci
-        env:
-          NODE_AUTH_TOKEN: ${{ steps.op-load-secrets.outputs.WORKFLOWS_PAT }}
+        run: bun install --frozen-lockfile
 
       - name: Install Playwright browsers
-        run: npx playwright install --with-deps ${{ inputs.browsers }}
+        run: bunx playwright install --with-deps ${{ inputs.browsers }}
 
       - name: Run Playwright tests
-        run: npx playwright test ${{ inputs.test_path }}
+        run: bunx playwright test ${{ inputs.test_path }}
         env:
           BASE_URL: ${{ steps.op-load-secrets.outputs.STAGING_URL }}
 
