@@ -179,10 +179,12 @@ Returns `outputs.rebuild = true/false` for conditional build triggering.
 
 ### Playwright Testing
 
-Runs after staging deploy. Expects:
+Runs after staging deploy. Uses **bun** for faster dependency installation.
+
+Expects:
 
 - `tests/ci/` directory with Playwright tests
-- `package.json` with Playwright dependencies
+- `package.json` (or `bun.lockb`) with Playwright dependencies
 - 1Password item with `domain/{branch}/url` field
 
 Required repository variables:
@@ -191,7 +193,7 @@ Required repository variables:
 - `CLIENTS_VAULT_ID` — 1Password vault ID
 - `ITEM_ID` — 1Password item ID for this project
 
-The workflow loads secrets before `npm ci` to authenticate with GitHub Packages for private dependencies.
+The workflow configures `.npmrc` for GitHub Packages auth before `bun install --frozen-lockfile`.
 
 ## Custom Actions
 
