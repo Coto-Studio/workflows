@@ -185,6 +185,14 @@ Runs after staging deploy. Expects:
 - `package.json` with Playwright dependencies
 - 1Password item with `domain/{branch}/url` field
 
+Required repository variables:
+
+- `WORKFLOWS_OP_REF` — GitHub PAT for npm authentication (needed if using private GitHub Packages)
+- `CLIENTS_VAULT_ID` — 1Password vault ID
+- `ITEM_ID` — 1Password item ID for this project
+
+The workflow loads secrets before `npm ci` to authenticate with GitHub Packages for private dependencies.
+
 ## Custom Actions
 
 | Action | Purpose | Repo |
