@@ -11,6 +11,10 @@ on:
         description: "Browsers to install (space-separated: webkit chromium firefox)"
         default: "webkit chromium"
         type: string
+      branch:
+        description: "Branch name for 1Password URL lookup (use github.event.workflow_run.head_branch for workflow_run triggers)"
+        default: ""
+        type: string
     secrets:
       OP_SERVICE_ACCOUNT_TOKEN:
         required: true
@@ -29,7 +33,7 @@ jobs:
         env:
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
           WORKFLOWS_PAT: ${{ vars.WORKFLOWS_OP_REF }}
-          STAGING_URL: "op://${{ vars.CLIENTS_VAULT_ID }}/${{ vars.ITEM_ID }}/domain/${{ github.ref_name }}/url"
+          STAGING_URL: "op://${{ vars.CLIENTS_VAULT_ID }}/${{ vars.ITEM_ID }}/domain/${{ inputs.branch || github.ref_name }}/url"
 
       - name: Checkout
         uses: actions/checkout@v4
