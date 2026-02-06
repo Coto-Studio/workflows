@@ -33,7 +33,7 @@ jobs:
         env:
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
           WORKFLOWS_PAT: ${{ vars.WORKFLOWS_OP_REF }}
-          STAGING_URL: "op://${{ vars.CLIENTS_VAULT_ID }}/${{ vars.ITEM_ID }}/domain/${{ inputs.branch || github.ref_name }}/url"
+          STAGING_HOST: "op://${{ vars.CLIENTS_VAULT_ID }}/${{ vars.ITEM_ID }}/domain/${{ inputs.branch || github.ref_name }}"
 
       - name: Checkout
         uses: actions/checkout@v4
@@ -54,10 +54,20 @@ jobs:
       - name: Install Playwright browsers
         run: bunx playwright install --with-deps ${{ inputs.browsers }}
 
+      - name: Verify staging URL
+        run: |
+          if [ -z "$STAGING_HOST" ]; then
+            echo "::error::STAGING_HOST is empty. Check 1Password field: domain/${{ inputs.branch || github.ref_name }}"
+            exit 1
+          fi
+          echo "Running tests against https://${STAGING_HOST}"
+        env:
+          STAGING_HOST: ${{ steps.op-load-secrets.outputs.STAGING_HOST }}
+
       - name: Run Playwright tests
         run: bunx playwright test ${{ inputs.test_path }}
         env:
-          BASE_URL: ${{ steps.op-load-secrets.outputs.STAGING_URL }}
+          BASE_URL: "https://${{ steps.op-load-secrets.outputs.STAGING_HOST }}"
 
       - name: Upload Playwright report
         uses: actions/upload-artifact@v4
