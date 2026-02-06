@@ -52,6 +52,16 @@ jobs:
           args: --accept-dns
           use-cache: "true"
 
+      - name: Verify Tailscale connectivity
+        run: |
+          for i in $(seq 1 10); do
+            tailscale ping --timeout=5s "$DEPLOY_HOST" && exit 0
+            echo "Waiting for Tailscale peer... attempt $i"
+            sleep 2
+          done
+          echo "::error::Failed to reach $DEPLOY_HOST via Tailscale after 10 attempts"
+          exit 1
+
       - uses: actions/checkout@v4
         with:
           token: ${{ env.WORKFLOWS_PAT }}
