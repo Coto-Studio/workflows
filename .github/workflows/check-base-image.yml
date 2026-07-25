@@ -19,7 +19,7 @@ jobs:
     steps:
       - name: OP Load secrets
         id: op-load-secrets
-        uses: 1password/load-secrets-action@v2
+        uses: 1password/load-secrets-action@v4
         with:
           export-env: false
         env:
@@ -27,7 +27,7 @@ jobs:
           WORKFLOWS_PAT: ${{ vars.WORKFLOWS_OP_REF }}
 
       - name: Log in to the Container registry
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           registry: https://ghcr.io
           username: ${{ github.actor }}
@@ -35,7 +35,7 @@ jobs:
 
       - name: Docker Image Update Checker
         id: baseupdatecheck
-        uses: lucacome/docker-image-update-checker@v2
+        uses: lucacome/docker-image-update-checker@v3
         with:
           base-image: ${{ vars.BASE_IMAGE }}
           image: ${{ vars.IMAGE_NAME }}:${{ vars.IMAGE_TAG }} # update for your image

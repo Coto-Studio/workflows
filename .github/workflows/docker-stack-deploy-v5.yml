@@ -28,7 +28,7 @@ jobs:
 
       - name: OP Load secrets
         id: op-load-secrets
-        uses: 1password/load-secrets-action@v2
+        uses: 1password/load-secrets-action@v4
         with:
           export-env: true
         env:
@@ -74,7 +74,7 @@ jobs:
           echo "::error::Failed to reach $DEPLOY_HOST via Tailscale after 10 attempts"
           exit 1
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           token: ${{ env.WORKFLOWS_PAT }}
 
