@@ -55,7 +55,11 @@ jobs:
       - name: Verify Tailscale connectivity
         run: |
           for i in $(seq 1 10); do
-            tailscale ping --timeout=5s "$DEPLOY_HOST" && exit 0
+            if out=$(tailscale ping --timeout=5s --until-direct=false "$DEPLOY_HOST"); then
+              echo "$out"
+              echo "$out" | grep -q "via DERP" && echo "::warning::Connected to $DEPLOY_HOST via DERP relay, not direct"
+              exit 0
+            fi
             echo "Waiting for Tailscale peer... attempt $i"
             sleep 2
           done
