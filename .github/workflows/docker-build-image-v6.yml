@@ -1,0 +1,172 @@
+name: Docker
+
+# Builds each platform on a native runner instead of emulating arm64 with QEMU,
+# then merges the per-platform images into one multi-arch manifest under the
+# tags the consuming repo's docker-bake.hcl declares. Consumers pull the same
+# tags as with v5 and get the right architecture automatically.
+#
+# Each build job pushes by digest only, so nothing is tagged until the merge job
+# has both platforms. Each platform keeps its own registry cache
+# (buildcache-amd64 / buildcache-arm64) so the parallel jobs do not overwrite
+# each other's cache.
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        description: 'Deployment environment (production, staging)'
+        default: 'production'
+        type: string
+      tag:
+        description: 'Push only this tag instead of the bake file tags (for testing a branch without touching production tags)'
+        default: ''
+        type: string
+    secrets:
+      OP_SERVICE_ACCOUNT_TOKEN:
+        required: true
+
+permissions:
+  packages: write
+
+jobs:
+  build:
+    name: Build ${{ matrix.arch }}
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: true
+      matrix:
+        include:
+          - arch: amd64
+            platform: linux/amd64
+            runner: ubuntu-26.04
+          - arch: arm64
+            platform: linux/arm64
+            runner: ubuntu-26.04-arm
+    steps:
+      - name: Set bake target
+        id: config
+        run: |
+          if [ "${{ inputs.environment }}" = "staging" ]; then
+            echo "bake_target=dev" >> $GITHUB_OUTPUT
+          fi
+
+      - name: OP Load secrets
+        id: op-load-secrets
+        uses: 1password/load-secrets-action@v4
+        with:
+          export-env: false
+        env:
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+          WORKFLOWS_PAT: ${{ vars.WORKFLOWS_OP_REF }}
+
+      - uses: actions/checkout@v7
+        with:
+          lfs: true
+          token: ${{ steps.op-load-secrets.outputs.WORKFLOWS_PAT }}
+
+      - name: Log in to the Container registry
+        uses: docker/login-action@v4
+        with:
+          registry: https://ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ steps.op-load-secrets.outputs.WORKFLOWS_PAT }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Build and push ${{ matrix.platform }} by digest
+        env:
+          BAKE_TARGET: ${{ steps.config.outputs.bake_target }}
+          PLATFORM: ${{ matrix.platform }}
+          ARCH: ${{ matrix.arch }}
+          GITHUB_TOKEN: ${{ steps.op-load-secrets.outputs.WORKFLOWS_PAT }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/bake"
+          docker buildx bake --print $BAKE_TARGET > "$RUNNER_TEMP/bake/print.json"
+
+          # Override each target: one platform, untagged push by digest, and a
+          # per-platform cache. The image name is the first bake tag minus its tag.
+          mapfile -t overrides < <(jq -r --arg platform "$PLATFORM" --arg arch "$ARCH" '
+            .target | to_entries[] |
+            .key as $t | (.value.tags[0] | sub(":[^:/]+$"; "")) as $repo |
+            "\($t).tags=\($repo)",
+            "\($t).platform=\($platform)",
+            "\($t).output=type=image,push-by-digest=true,name-canonical=true,push=true",
+            "\($t).cache-from=type=registry,ref=\($repo):buildcache-\($arch)",
+            "\($t).cache-to=type=registry,ref=\($repo):buildcache-\($arch),mode=max"
+          ' "$RUNNER_TEMP/bake/print.json")
+
+          set_args=()
+          for o in "${overrides[@]}"; do set_args+=(--set "$o"); done
+
+          docker buildx bake $BAKE_TARGET "${set_args[@]}" \
+            --metadata-file "$RUNNER_TEMP/bake/metadata-$ARCH.json"
+
+      - name: Upload digests
+        uses: actions/upload-artifact@v7
+        with:
+          name: bake-${{ matrix.arch }}
+          path: ${{ runner.temp }}/bake/
+          retention-days: 1
+
+  merge:
+    name: Merge Manifest
+    needs: build
+    runs-on: ubuntu-26.04
+    steps:
+      - name: OP Load secrets
+        id: op-load-secrets
+        uses: 1password/load-secrets-action@v4
+        with:
+          export-env: false
+        env:
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+          WORKFLOWS_PAT: ${{ vars.WORKFLOWS_OP_REF }}
+
+      - name: Log in to the Container registry
+        uses: docker/login-action@v4
+        with:
+          registry: https://ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ steps.op-load-secrets.outputs.WORKFLOWS_PAT }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Download digests
+        uses: actions/download-artifact@v8
+        with:
+          pattern: bake-*
+          path: ${{ runner.temp }}/bake
+          merge-multiple: true
+
+      - name: Create multi-arch manifests
+        env:
+          TAG: ${{ inputs.tag }}
+        run: |
+          cd "$RUNNER_TEMP/bake"
+          for target in $(jq -r '.target | keys[]' print.json); do
+            repo=$(jq -r --arg t "$target" '.target[$t].tags[0] | sub(":[^:/]+$"; "")' print.json)
+            if [ -n "$TAG" ]; then
+              tags=("$repo:$TAG")
+            else
+              mapfile -t tags < <(jq -r --arg t "$target" '.target[$t].tags[]' print.json)
+            fi
+
+            sources=()
+            for arch in amd64 arm64; do
+              digest=$(jq -r --arg t "$target" '.[$t]["containerimage.digest"]' "metadata-$arch.json")
+              if [ -z "$digest" ] || [ "$digest" = "null" ]; then
+                echo "::error::No $arch digest for bake target '$target'"
+                exit 1
+              fi
+              sources+=("$repo@$digest")
+            done
+
+            tag_args=()
+            for t in "${tags[@]}"; do tag_args+=(-t "$t"); done
+
+            echo "Tagging ${tags[*]} from ${sources[*]}"
+            docker buildx imagetools create "${tag_args[@]}" "${sources[@]}"
+            docker buildx imagetools inspect "${tags[0]}"
+          done

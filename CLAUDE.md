@@ -30,7 +30,7 @@ ls -la .github/workflows/
 
 | Workflow | Purpose | Current Version |
 |----------|---------|-----------------|
-| `docker-build-image-v*.yml` | Build and push Docker images to GHCR | v5 |
+| `docker-build-image-v*.yml` | Build and push Docker images to GHCR | v6 (v5 for most consumers) |
 | `docker-stack-deploy-v*.yml` | Deploy Docker stacks via SSH/Tailscale | v5 |
 | `check-base-image-v*.yml` | Check if base image updated (triggers rebuilds) | v3 |
 | `playwright-test-staging.yml` | Run Playwright tests against staging | - |
@@ -46,6 +46,7 @@ Workflows are versioned with `-v*` suffix to allow gradual migration. Consuming 
 | v3 | Switched to repository variables for 1Password (`vars.WORKFLOWS_OP_REF`, `vars.CLIENTS_VAULT_ID`, `vars.ITEM_ID`) |
 | v4 | Added LFS support, improved build args handling |
 | v5 | Environment-based deployment (production/staging) via `inputs.environment`, uses `docker buildx bake` |
+| v6 | Docker build only: each platform builds on a native runner (`ubuntu-26.04`, `ubuntu-26.04-arm`) instead of QEMU, then merges into one multi-arch manifest; `inputs.tag` for test builds |
 
 ### Why Multiple Versions Exist
 
@@ -125,6 +126,15 @@ target "dev" {
 
 - `inputs.environment = "staging"` → builds `dev` target
 - `inputs.environment = "production"` (default) → builds default target
+
+### Docker Build (v6)
+
+Same inputs and bake file as v5. Use it for images where emulated arm64 builds are slow or crash under QEMU (`exit code 132`, `Illegal instruction`), such as ones that run `npm install` or compile native extensions. Fast, cache-hit builds gain little from it.
+
+- **Jobs:** `build` (matrix: amd64 on `ubuntu-26.04`, arm64 on `ubuntu-26.04-arm`) pushes each platform untagged by digest; `merge` applies the bake file's tags to a multi-arch manifest with `docker buildx imagetools create`. Consumers pull the same tags as before.
+- **Cache:** per platform, at `<image>:buildcache-amd64` and `<image>:buildcache-arm64`, so the parallel jobs don't overwrite each other. The first v6 build of an image starts cold.
+- **`inputs.tag`:** pushes only `<image>:<tag>` instead of the bake tags. Use it to test a branch without moving `:latest` or tags that downstream `check-base-image` jobs watch.
+- **Private repos:** arm64 runners have 2 vCPU and count against the plan's Actions minutes.
 
 ### Stack Deploy (v5)
 
