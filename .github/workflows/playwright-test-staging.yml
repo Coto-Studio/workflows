@@ -64,6 +64,22 @@ jobs:
         env:
           STAGING_HOST: ${{ steps.op-load-secrets.outputs.STAGING_HOST }}
 
+      # The deploy job finishes once the stack is updated, not once Ghost is up,
+      # so the first tests used to hit the proxy's 404 while the new container
+      # was still starting.
+      - name: Wait for staging to respond
+        run: |
+          for i in $(seq 1 30); do
+            status=$(curl -s -o /dev/null -w "%{http_code}" "https://${STAGING_HOST}/" || true)
+            [ "$status" = "200" ] && { echo "Staging is up (attempt $i)"; exit 0; }
+            echo "Waiting for staging... HTTP $status (attempt $i)"
+            sleep 10
+          done
+          echo "::error::https://${STAGING_HOST}/ did not return 200 within 5 minutes"
+          exit 1
+        env:
+          STAGING_HOST: ${{ steps.op-load-secrets.outputs.STAGING_HOST }}
+
       - name: Run Playwright tests
         run: bunx playwright test ${{ inputs.test_path }}
         env:
