@@ -52,7 +52,7 @@ jobs:
 
       - name: OP Load secrets
         id: op-load-secrets
-        uses: 1password/load-secrets-action@v4
+        uses: 1password/load-secrets-action@v5
         with:
           export-env: false
         env:
@@ -116,7 +116,7 @@ jobs:
     steps:
       - name: OP Load secrets
         id: op-load-secrets
-        uses: 1password/load-secrets-action@v4
+        uses: 1password/load-secrets-action@v5
         with:
           export-env: false
         env:

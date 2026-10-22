@@ -16,7 +16,7 @@ jobs:
     steps:
       - name: OP Load secrets
         id: op-load-secrets
-        uses: 1password/load-secrets-action@v2
+        uses: 1password/load-secrets-action@v5
         with:
           export-env: true
         env:
